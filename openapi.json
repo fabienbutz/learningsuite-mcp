@@ -1,0 +1,6509 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "LearningSuite API",
+    "description": "Public API for LearningSuite. Use the path **/api/v1** as prefix for all your requests.",
+    "version": "1.16.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.learningsuite.io/api/v1",
+      "description": "API Server"
+    }
+  ],
+  "paths": {
+    "/auth": {
+      "get": {
+        "summary": "dummy endpoint to check authorization",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/members": {
+      "post": {
+        "summary": "Create a new member",
+        "tags": [
+          "Members"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "firstName",
+                  "lastName"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "firstName": {
+                    "type": "string"
+                  },
+                  "lastName": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "about": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "position": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "city": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  },
+                  "disableLoginEmail": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If true, the user will not receive a welcome email with login instructions"
+                  },
+                  "doNotRequirePasswordChange": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If true, the user will not be required to change their password on first login"
+                  },
+                  "locale": {
+                    "type": "string",
+                    "description": "The language setting of the member in the plattform",
+                    "enum": [
+                      "de",
+                      "en"
+                    ]
+                  },
+                  "ignoreIfAlreadyExists": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If the member already exists, no error will be thrown and the existing member will be returned"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get members",
+        "tags": [
+          "Members"
+        ],
+        "parameters": [
+          {
+            "name": "includeGroups",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Include groups the member is part of in the response for each member",
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "days_not_logged_in_gte",
+            "description": "The minimum number of days the user has not logged in. If set, per default users who have never logged in are not included.",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "include_never_logged_in",
+            "description": "Include users who never logged in in the result. If days_not_logged_in_gte is not set, default is true, otherwise false.",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "limit",
+            "description": "The maximum number of members to return -> useful for pagination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 1000,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "offset",
+            "description": "The number of members to skip -> useful for pagination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "description": "Depending if includeGroups is false or true, the response will be User or UserWithGroups",
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/User"
+                      },
+                      {
+                        "$ref": "#/components/schemas/UserWithGroups"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/members/by-email": {
+      "get": {
+        "summary": "Get a member by email",
+        "tags": [
+          "Members"
+        ],
+        "parameters": [
+          {
+            "name": "email",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeGroups",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Include groups the member is part of in the response for each member",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Depending if includeGroups is false or true, the response will be User or UserWithGroups",
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/User"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UserWithGroups"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/members/{memberId}": {
+      "parameters": [
+        {
+          "name": "memberId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get a member",
+        "tags": [
+          "Members"
+        ],
+        "parameters": [
+          {
+            "name": "includeGroups",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Include groups the member is part of in the response",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Depending if includeGroups is false or true, the response will be User or UserWithGroups",
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/User"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UserWithGroups"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update a member",
+        "tags": [
+          "Members"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [],
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "firstName": {
+                    "type": "string"
+                  },
+                  "lastName": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "about": {
+                    "type": "string"
+                  },
+                  "position": {
+                    "type": "string"
+                  },
+                  "city": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "description": "Needs to be a valid email and unique for the tenant."
+                  },
+                  "locale": {
+                    "type": "string",
+                    "description": "The language setting of the member in the plattform",
+                    "enum": [
+                      "de",
+                      "en"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete a member",
+        "tags": [
+          "Members"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/members/{memberId}/courses": {
+      "parameters": [
+        {
+          "name": "memberId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get all courses for a member with access and progress information",
+        "tags": [
+          "Courses"
+        ],
+        "parameters": [
+          {
+            "name": "dateForAccessCheck",
+            "in": "query",
+            "required": false,
+            "description": "defaults to current date",
+            "schema": {
+              "$ref": "#/components/schemas/IsoDateTime"
+            }
+          },
+          {
+            "name": "limit",
+            "description": "The maximum number of courses to return -> for pagination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 1000,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "offset",
+            "description": "The number of courses to skip -> for pagination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CourseInfoForUser"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Add a member to courses",
+        "tags": [
+          "Courses"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "courseIds"
+                ],
+                "properties": {
+                  "courseIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "accessGivenAt": {
+                    "$ref": "#/components/schemas/IsoDateTime"
+                  },
+                  "disableAccessNotificationEmail": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If true, the user will not receive an email new course accesses"
+                  },
+                  "sendLoginLinkInCourseEmail": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If true, the user will receive a login link in the course access email if he has never logged in before. The email even be sent within the first 24 hours after user creation (Normally we do not send any emails to new users in the first 24 hours, if they have not logged in)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Removes a member from courses",
+        "tags": [
+          "Courses"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "courseIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "removed": {
+                      "type": "integer",
+                      "description": "number of removed courses"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/members/{memberId}/course-info/{courseId}": {
+      "get": {
+        "summary": "Get a member's access  and progress information for a course",
+        "tags": [
+          "Courses"
+        ],
+        "parameters": [
+          {
+            "name": "memberId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "courseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateForAccessCheck",
+            "in": "query",
+            "required": false,
+            "description": "defaults to current date",
+            "schema": {
+              "$ref": "#/components/schemas/IsoDateTime"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Information about the member's access and progress with the course",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/UserCourseProgressInfo"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UserCourseAccessInfo"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/members/{memberId}/bundles": {
+      "parameters": [
+        {
+          "name": "memberId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get all bundles of a member with access information",
+        "tags": [
+          "Bundles"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BundleWithAccessInfo"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Add a member to bundles",
+        "tags": [
+          "Bundles"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "bundles"
+                ],
+                "properties": {
+                  "bundles": {
+                    "type": "array",
+                    "description": "list of bundle ids",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "accessGivenAt": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/IsoDateTime"
+                      },
+                      {
+                        "description": "DEPRECATED - Use accessGivenAtOverride instead",
+                        "deprecated": true,
+                        "default": "now"
+                      }
+                    ]
+                  },
+                  "accessGivenAtOverride": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/IsoDateTime"
+                      },
+                      {
+                        "default": "now",
+                        "description": "If set, overrides the date the user will have got access. Useful when wanting to override certain content drips or access durations."
+                      }
+                    ]
+                  },
+                  "accessUntilOverride": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/IsoDateTime"
+                      },
+                      {
+                        "description": "If set, the user has only access until this date. The access duration from the bundle will be ignored."
+                      }
+                    ]
+                  },
+                  "unlimitedAccess": {
+                    "type": "boolean",
+                    "required": false,
+                    "default": "undefined",
+                    "description": "If set, the user has unlimited access to the bundle, independent of the access duration of the bundle"
+                  },
+                  "disableAccessNotificationEmail": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If true, the user will not receive an email new course accesses"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Remove a member from bundles",
+        "tags": [
+          "Bundles"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "bundleIds"
+                ],
+                "properties": {
+                  "bundleIds": {
+                    "type": "array",
+                    "description": "List of bundle ids to remove the member from.",
+                    "items": {
+                      "type": "string",
+                      "description": "Bundle ID"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/team-members": {
+      "get": {
+        "summary": "Get Team Members, which includes all users which are NOT members and therefore have admin zone access",
+        "tags": [
+          "Team-Members"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "description": "The maximum number of users to return -> useful for pagination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 15,
+              "maximum": 100,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "offset",
+            "description": "The number of users to skip -> useful for pagination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/team-members/by-email": {
+      "get": {
+        "summary": "Get a specific Team Member by email. If multiple users with the same email exist, the first one found will be returned.",
+        "tags": [
+          "Team-Members"
+        ],
+        "parameters": [
+          {
+            "name": "email",
+            "in": "query",
+            "required": true,
+            "description": "Email is case insensitive, but needs to be an exact match",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/team-members/{userId}": {
+      "parameters": [
+        {
+          "name": "userId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get a Team Member by ID",
+        "tags": [
+          "Team-Members"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/user/roles": {
+      "get": {
+        "summary": "Get all roles",
+        "tags": [
+          "Roles"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Role"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/user/push-notifications/send": {
+      "post": {
+        "summary": "Send push notifications to all requested users with an active login session. Note: This is only available if a custom app is used.",
+        "tags": [
+          "Push-Notifications"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "linkUrl"
+                ],
+                "description": "Either userIds or groupIds must be provided.",
+                "properties": {
+                  "userIds": {
+                    "type": "array",
+                    "description": "List of user IDs to send the push notification to",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "groupIds": {
+                    "type": "array",
+                    "description": "List of group IDs to send the push notification to all members of the group",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The title of the push notification"
+                  },
+                  "body": {
+                    "type": "string",
+                    "description": "The body text of the push notification in Plain Text."
+                  },
+                  "linkUrl": {
+                    "type": "string"
+                  },
+                  "publicImageUrl": {
+                    "type": "string",
+                    "description": "A public image URL to show in the push notification."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "successCount": {
+                      "type": "integer",
+                      "description": "Number of successfully sent push notifications"
+                    },
+                    "failureCount": {
+                      "type": "integer",
+                      "description": "Number of failed push notifications"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/bundles": {
+      "get": {
+        "summary": "Get bundles",
+        "tags": [
+          "Bundles"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Bundle"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/bundle/{bundleId}/members": {
+      "get": {
+        "summary": "Get members of a bundle with access info",
+        "tags": [
+          "Bundles"
+        ],
+        "parameters": [
+          {
+            "name": "bundleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "description": "The maximum number of members to return -> for pagination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 200,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "offset",
+            "description": "The number of members to skip -> for pagination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserWithBundleAccessInfo"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/courses/published": {
+      "get": {
+        "summary": "Get published courses",
+        "tags": [
+          "Courses"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Course"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/courses/{courseId}/modules": {
+      "get": {
+        "summary": "Get all modules of a course",
+        "tags": [
+          "Courses"
+        ],
+        "parameters": [
+          {
+            "name": "courseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Module"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/courses/{courseId}/modules/{memberId}": {
+      "get": {
+        "summary": "Get all modules of a course, with the visibility information for the given member.",
+        "tags": [
+          "Courses"
+        ],
+        "parameters": [
+          {
+            "name": "courseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "memberId",
+            "in": "path",
+            "required": true,
+            "description": "The member to get the content drip information for",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Module"
+                      },
+                      {
+                        "type": "object",
+                        "required": [],
+                        "properties": {
+                          "memberData": {
+                            "type": "object",
+                            "nullable": true,
+                            "description": "Content drip and visibility information for the member. Null if the module is not present in the published course version.",
+                            "properties": {
+                              "visibility": {
+                                "type": "string",
+                                "enum": [
+                                  "VISIBLE",
+                                  "HIDDEN",
+                                  "LOCKED"
+                                ],
+                                "description": "If the module is currently: VISIBLE (accessible), HIDDEN (not shown) or LOCKED (shown but not accessible) for the member."
+                              },
+                              "earliestVisitableDate": {
+                                "type": "string",
+                                "format": "date-time",
+                                "nullable": true,
+                                "description": "The earliest date the member had access to the module content, taking into account content drip settings and overrides. Null if the member has not yet started."
+                              },
+                              "effectiveContentDripState": {
+                                "type": "string",
+                                "enum": [
+                                  "locked",
+                                  "comingSoon",
+                                  "timeDelay",
+                                  "visible",
+                                  "accessUntil",
+                                  "hidden",
+                                  "paused",
+                                  "upsellLink"
+                                ],
+                                "description": "The current effective content drip type for the member, taking into account content drip overrides."
+                              },
+                              "started": {
+                                "type": "boolean",
+                                "description": "Whether the member has started the module (e.g. viewed any lesson or started any quiz in the module)."
+                              },
+                              "contentDripIsOverridden": {
+                                "type": "boolean",
+                                "description": "Whether the content drip settings for this module have been overridden for the member."
+                              }
+                            }
+                          },
+                          "isOverridden": {
+                            "type": "boolean",
+                            "deprecated": true,
+                            "description": "Whether the content drip settings for this module have been overridden for the member. Same as memberData.contentDripIsOverridden."
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/courses/{courseId}/members": {
+      "get": {
+        "summary": "Get the members for a course, with access information and optional progress",
+        "tags": [
+          "Courses"
+        ],
+        "parameters": [
+          {
+            "name": "courseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "The maximum number of members to return -> for pagination",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 100
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "description": "The offset for limit -> for pagination",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          },
+          {
+            "name": "includeProgress",
+            "in": "query",
+            "required": false,
+            "description": "If set, a field called progressInfo will be included for each member.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "users": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/UserWithCourseAccessInfo"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/courses/{courseId}/access-requests": {
+      "get": {
+        "summary": "Get access requests for a module",
+        "tags": [
+          "Courses"
+        ],
+        "parameters": [
+          {
+            "name": "courseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 15,
+              "minimum": 1,
+              "description": "The maximum number of access requests to return"
+            }
+          },
+          {
+            "name": "offset",
+            "description": "The number of access requests to skip -> for pagination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ModuleAccessRequest"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/courses/{courseId}/submissions": {
+      "get": {
+        "summary": "Get all submissions in a course. (chronological order with newest first)",
+        "tags": [
+          "Courses"
+        ],
+        "parameters": [
+          {
+            "name": "courseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 15,
+              "minimum": 1,
+              "description": "The maximum number of submissions to return"
+            }
+          },
+          {
+            "name": "offset",
+            "description": "The number of submissions to skip -> for pagination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "description": "Ordered by submission created at date, newest first.",
+                  "items": {
+                    "$ref": "#/components/schemas/Submission"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/courses/{courseId}/create-lesson/{sectionId}": {
+      "post": {
+        "summary": "Create lesson with optional content",
+        "description": "Creates a lesson in the provided section. If the thumbnail is extracted from the video, the video processing is asynchronous and the thumbnail might not be available immediately.",
+        "tags": [
+          "Courses"
+        ],
+        "parameters": [
+          {
+            "name": "courseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sectionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "name of the lesson and page"
+                  },
+                  "lessonDescription": {
+                    "deprecated": true,
+                    "type": "string"
+                  },
+                  "htmlContent": {
+                    "type": "string",
+                    "description": "Will be parsed to LearningSuite content, no media elements except images are supported at the moment."
+                  },
+                  "videoUrl": {
+                    "type": "string",
+                    "description": "A downloadable video url. The lesson image gets set asynchronous from the video thumbnail, if no thumbnail is provided."
+                  },
+                  "thumbnailUrl": {
+                    "type": "string",
+                    "description": "A downloadable image url. The lesson and video thumbnail is set by this image."
+                  },
+                  "timestampInSecondsToGenerateThumbnail": {
+                    "type": "number",
+                    "description": "The video timestamp in seconds to generate the thumbnail from. If not provided, the thumbnail is generated from the beginning of the video. The video processing is asynchronous and the thumbnail might not be available immediately."
+                  },
+                  "immediatelyPublishCourse": {
+                    "type": "boolean",
+                    "description": "automatically publishes all changes including this lesson"
+                  },
+                  "lessonSortPosition": {
+                    "type": "string",
+                    "default": "last",
+                    "enum": [
+                      "first",
+                      "last"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "relativePath": {
+                      "description": "relative student path to the lesson",
+                      "type": "string"
+                    },
+                    "absolutePath": {
+                      "description": "Student URL to the lesson",
+                      "type": "string"
+                    },
+                    "lessonId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/modules/{moduleId}/lessons": {
+      "get": {
+        "summary": "Get lessons for a module",
+        "tags": [
+          "Courses"
+        ],
+        "parameters": [
+          {
+            "name": "moduleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Lesson"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/modules/{moduleId}/sections": {
+      "get": {
+        "summary": "Get all sections of a module",
+        "tags": [
+          "Courses"
+        ],
+        "parameters": [
+          {
+            "name": "moduleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Section"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/create-module-unlock-override": {
+      "post": {
+        "summary": "Create module unlock override",
+        "tags": [
+          "Courses"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "moduleId",
+                  "courseInstanceId",
+                  "new_module_access",
+                  "userId"
+                ],
+                "properties": {
+                  "moduleId": {
+                    "type": "string"
+                  },
+                  "courseInstanceId": {
+                    "type": "string"
+                  },
+                  "userId": {
+                    "type": "string"
+                  },
+                  "new_module_access": {
+                    "type": "string",
+                    "enum": [
+                      "on_demand",
+                      "hidden",
+                      "published",
+                      "locked",
+                      "after_previous"
+                    ],
+                    "description": "The new module access type. Note: For 'on_demand' additional configuration via the 'on_demand_value' is possible."
+                  },
+                  "on_demand_value": {
+                    "type": "object",
+                    "description": "If new_module_access is 'on_demand', this object can be used to set the reasonIsMandatory and description.",
+                    "properties": {
+                      "reasonIsMandatory": {
+                        "type": "boolean",
+                        "description": "If true, the user will be required to provide a reason when requesting access to the module.",
+                        "default": false
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "The description that is shown to the user when requesting access to the module."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/groups": {
+      "post": {
+        "summary": "Create group",
+        "tags": [
+          "Groups"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Group"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get groups",
+        "tags": [
+          "Groups"
+        ],
+        "parameters": [
+          {
+            "name": "includeUsers",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "description": "Depending if includeUsers is false or true, the response will be Group or GroupWithUsers",
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/GroupWithUsers"
+                      },
+                      {
+                        "$ref": "#/components/schemas/Group"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/groups/find-by-name": {
+      "get": {
+        "summary": "Find groups by name",
+        "tags": [
+          "Groups"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeUsers",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "description": "Depending if includeUsers is false or true, the response will be Group or GroupWithUsers",
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/GroupWithUsers"
+                      },
+                      {
+                        "$ref": "#/components/schemas/Group"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/add-members-to-groups": {
+      "put": {
+        "summary": "Add members to groups",
+        "tags": [
+          "Groups"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "userIds",
+                  "groupIds"
+                ],
+                "properties": {
+                  "userIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "groupIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "disableAccessNotificationEmail": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If true, the user will not receive an email new course accesses"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "groups": {
+                      "description": "All affected groups with their updated user lists",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/GroupWithUsers"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/add-members-to-groups-summary": {
+      "put": {
+        "summary": "Add members to groups (summary response)",
+        "tags": [
+          "Groups"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "userIds",
+                  "groupIds"
+                ],
+                "properties": {
+                  "userIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "groupIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "disableAccessNotificationEmail": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If true, the user will not receive an email new course accesses"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "numberOfAddedUserGroupAssignments": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/remove-members-from-groups": {
+      "delete": {
+        "summary": "Remove members from groups",
+        "tags": [
+          "Groups"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "userIds",
+                  "groupIds"
+                ],
+                "properties": {
+                  "userIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "groupIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "groups": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Group"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/group/{groupId}": {
+      "delete": {
+        "summary": "Delete group",
+        "tags": [
+          "Groups"
+        ],
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "default": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/group/{groupId}/courses": {
+      "get": {
+        "summary": "Get all courses of a group",
+        "tags": [
+          "Groups"
+        ],
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Course"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Add courses to group",
+        "tags": [
+          "Groups"
+        ],
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "courseIds"
+                ],
+                "properties": {
+                  "courseIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "disableAccessNotificationEmail": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If true, the user will not receive an email new course accesses"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "default": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Remove courses from a group",
+        "tags": [
+          "Groups"
+        ],
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "courseIds"
+                ],
+                "properties": {
+                  "courseIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "removed": {
+                      "type": "integer",
+                      "description": "number of removed courses"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/group/{groupId}/bundles": {
+      "put": {
+        "summary": "Add bundles to group",
+        "tags": [
+          "Groups"
+        ],
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "bundleIds"
+                ],
+                "properties": {
+                  "bundleIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "disableAccessNotificationEmail": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If true, the user will not receive an email new course accesses"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "default": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/hub-templates": {
+      "get": {
+        "summary": "Get hub templates",
+        "tags": [
+          "Hubs"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Hub"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/hubs": {
+      "get": {
+        "summary": "Get published hubs",
+        "tags": [
+          "Hubs"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Hub"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/hub-template/{hubTemplateId}/variables": {
+      "get": {
+        "summary": "Get hub template variables",
+        "tags": [
+          "Hubs"
+        ],
+        "parameters": [
+          {
+            "name": "hubTemplateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/hub": {
+      "post": {
+        "summary": "Create hub",
+        "tags": [
+          "Hubs"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "templateId",
+                  "name",
+                  "description",
+                  "sortIndex",
+                  "templateVariables"
+                ],
+                "properties": {
+                  "templateId": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "sortIndex": {
+                    "type": "integer"
+                  },
+                  "templateVariables": {
+                    "type": "object"
+                  },
+                  "publish": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Hub"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/hub/{hubId}/access": {
+      "put": {
+        "summary": "Add hub accesses",
+        "tags": [
+          "Hubs"
+        ],
+        "parameters": [
+          {
+            "name": "hubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [],
+                "properties": {
+                  "memberIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "groupIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "bundleIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Remove hub accesses",
+        "tags": [
+          "Hubs"
+        ],
+        "parameters": [
+          {
+            "name": "hubId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [],
+                "properties": {
+                  "memberIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "groupIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "bundleIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/popups": {
+      "get": {
+        "summary": "Get a paginated list of popups",
+        "tags": [
+          "Popups"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "description": "The maximum number of popups to return -> useful for pagination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "type": "integer",
+              "maximum": 100
+            }
+          },
+          {
+            "name": "offset",
+            "description": "The number of popups to skip -> useful for pagination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CustomPopup"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/popups/{{popupId}}": {
+      "get": {
+        "summary": "Get a custom popup",
+        "tags": [
+          "Popups"
+        ],
+        "parameters": [
+          {
+            "name": "popupId",
+            "in": "path",
+            "required": true,
+            "description": "Custom Popup ID or SID (short ID)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomPopup"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/popups/{popupId}/trigger/{memberId}": {
+      "post": {
+        "summary": "Trigger a popup for a member",
+        "tags": [
+          "Popups"
+        ],
+        "parameters": [
+          {
+            "name": "popupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "memberId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Remove a popup trigger for a member",
+        "tags": [
+          "Popups"
+        ],
+        "parameters": [
+          {
+            "name": "popupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "memberId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/community/areas": {
+      "get": {
+        "summary": "Get community areas",
+        "tags": [
+          "Community"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "description": "The maximum number of community areas to return -> useful for pagination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 15,
+              "type": "integer",
+              "maximum": 100
+            }
+          },
+          {
+            "name": "offset",
+            "description": "The number of community areas to skip -> useful for pagination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CommunityArea"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/community/forums": {
+      "get": {
+        "summary": "Get community forums",
+        "tags": [
+          "Community"
+        ],
+        "parameters": [
+          {
+            "name": "areaId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "description": "The maximum number of community forums to return -> useful for pagination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 15,
+              "type": "integer",
+              "maximum": 100
+            }
+          },
+          {
+            "name": "offset",
+            "description": "The number of community forums to skip -> useful for pagination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CommunityForum"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/community/posts": {
+      "get": {
+        "summary": "Get all published community posts",
+        "tags": [
+          "Community"
+        ],
+        "parameters": [
+          {
+            "name": "areaId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "forumId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "latest",
+              "enum": [
+                "relevance",
+                "latest",
+                "top",
+                "latestContent"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "description": "The maximum number of community posts to return -> useful for pagination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 15,
+              "type": "integer",
+              "maximum": 100
+            }
+          },
+          {
+            "name": "offset",
+            "description": "The number of community posts to skip -> useful for pagination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CommunityPost"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/community/badges": {
+      "get": {
+        "summary": "Get community badges",
+        "tags": [
+          "Community"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "description": "The maximum number of community badges to return -> useful for pagination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 15,
+              "type": "integer",
+              "maximum": 100
+            }
+          },
+          {
+            "name": "offset",
+            "description": "The number of community badges to skip -> useful for pagination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "badgeGroupId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "If set, only badges of the given badge group id are returned"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "required": [
+                    "items"
+                  ],
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CommunityBadge"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/community/badges/user": {
+      "put": {
+        "summary": "Assign badges to a user",
+        "tags": [
+          "Community"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "userId",
+                  "badgeIds"
+                ],
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  },
+                  "badgeIds": {
+                    "type": "array",
+                    "description": "The badge ids to assign to the user",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "added"
+                  ],
+                  "properties": {
+                    "added": {
+                      "description": "The amount of badges added to the user",
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Remove badges from a user",
+        "tags": [
+          "Community"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "userId",
+                  "badgeIds"
+                ],
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  },
+                  "badgeIds": {
+                    "type": "array",
+                    "description": "The badge ids to remove from the user",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "removed"
+                  ],
+                  "properties": {
+                    "removed": {
+                      "description": "The amount of badges removed from the user",
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/community/posts/{postId}/comments": {
+      "parameters": [
+        {
+          "name": "postId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Comment on a Community Post or answer to a comment of the post",
+        "tags": [
+          "Community"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "authorUserId",
+                  "postId",
+                  "comment"
+                ],
+                "properties": {
+                  "authorUserId": {
+                    "type": "string",
+                    "description": "The id of the user who is commenting. Needs to be an admin."
+                  },
+                  "answerToCommentId": {
+                    "type": "string",
+                    "description": "If set, the comment is an answer to another comment"
+                  },
+                  "commentText": {
+                    "type": "string",
+                    "description": "The text of the comment. Needs to be plain text, with no formatting (e.g. no HTML)"
+                  },
+                  "enableWebhookTriggering": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Per default, commenting via API does NOT trigger webhooks. Set this to true, if you want to trigger webhooks like the community.post.commented event. WARNING: This can lead to infinite loops, if the webhook calls the same API again."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunityPostComment"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/webhooks/subscription": {
+      "description": "Subscribe to events via webhooks. The webhook Response will be one of SubscriptionPayload.",
+      "get": {
+        "summary": "Get all subscriptions",
+        "tags": [
+          "Subscriptions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Subscription"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create subscription",
+        "tags": [
+          "Subscriptions"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "hookUrl",
+                  "type",
+                  "filter"
+                ],
+                "properties": {
+                  "hookUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "The URL to call with the event data. The data type is defined in SubscriptionPayload."
+                  },
+                  "type": {
+                    "$ref": "#/components/schemas/SubscriptionType"
+                  },
+                  "filter": {
+                    "$ref": "#/components/schemas/SubscriptionFilter"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/webhooks/subscription/{subscriptionId}": {
+      "parameters": [
+        {
+          "name": "subscriptionId",
+          "in": "query",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get a subscription",
+        "tags": [
+          "Subscriptions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update a subscription",
+        "tags": [
+          "Subscriptions"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "hookUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "The URL to call with the event data"
+                  },
+                  "type": {
+                    "$ref": "#/components/schemas/SubscriptionType"
+                  },
+                  "filter": {
+                    "$ref": "#/components/schemas/SubscriptionFilter"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete a subscription",
+        "tags": [
+          "Subscriptions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "The id of the deleted subscription"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/webhooks/sample-data/progress-changed-events": {
+      "get": {
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "description": "If set, the last progress changed event of this user is returned. (userId and courseId need to be provided)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "courseId",
+            "in": "query",
+            "required": false,
+            "description": "If set, the last progress changed event of this user is returned. (userId and courseId need to be provided)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Get sample data for progress changed events",
+        "tags": [
+          "Subscriptions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CourseProgressChangedPayload"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/webhooks/sample-data/lesson-completed-events": {
+      "get": {
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "description": "If set, the last lesson completed event of this user is returned. (userId, courseId, moduleId and lessonId all need to be provided)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "courseId",
+            "in": "query",
+            "required": false,
+            "description": "If set, the last lesson completed event of this user is returned. (userId, courseId, moduleId and lessonId all need to be provided)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "moduleId",
+            "in": "query",
+            "required": false,
+            "description": "If set, the last lesson completed event of this user is returned. (userId, courseId, moduleId and lessonId all need to be provided)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lessonId",
+            "in": "query",
+            "required": false,
+            "description": "If set, the last lesson completed event of this user is returned. (userId, courseId, moduleId and lessonId all need to be provided)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Get sample data for the lesson completed event",
+        "tags": [
+          "Subscriptions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LessonCompletedPayload"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/webhooks/sample-data/feedback-events": {
+      "get": {
+        "summary": "Get sample data for feedback events",
+        "tags": [
+          "Subscriptions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FeedbackCreatedPayload"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/webhooks/sample-data/new-login-events": {
+      "get": {
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "description": "If set, the last new login event of this user is returned",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "loginType",
+            "in": "query",
+            "required": false,
+            "description": "The type of login event",
+            "schema": {
+              "enum": [
+                "email-password",
+                "magic-link",
+                "password-reset",
+                "google",
+                "app-email-code",
+                "oidc"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Get sample data for new login events",
+        "tags": [
+          "Subscriptions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LoginNewPayload"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/webhooks/sample-data/exam-completed-events": {
+      "get": {
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "description": "If set, 3 or less past exam completed events of this user are returned",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Get sample data for exam completed events",
+        "tags": [
+          "Subscriptions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExamCompletedPayload"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/webhooks/sample-data/exam-graded-events": {
+      "get": {
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "description": "If set, 3 or less past exam completed events of this user are returned",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Get sample data for exam graded events",
+        "tags": [
+          "Subscriptions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExamGradedPayload"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/webhooks/sample-data/custom-popup-interaction-events": {
+      "get": {
+        "parameters": [
+          {
+            "name": "customPopupId",
+            "in": "query",
+            "required": false,
+            "description": "If set and userId is set, 3 events for this user and the popupId are returned",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "description": "If set and customPopupId is set, 3 events for this user and the popupId are returned",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "interactionType",
+            "in": "query",
+            "required": false,
+            "description": "The interaction to create the events for. If not provided, will be set random.",
+            "schema": {
+              "enum": [
+                "dismissed",
+                "actioned"
+              ]
+            }
+          }
+        ],
+        "summary": "Get sample data for custom popup triggered events",
+        "tags": [
+          "Subscriptions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CustomPopupInteractionPayload"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/webhooks/sample-data/community-post-created-events": {
+      "get": {
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "description": "If set 3 events for this user, with the optional area and forum filter, are returned",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "areaId",
+            "in": "query",
+            "required": false,
+            "description": "The id of the forum to filter for",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "forumId",
+            "in": "query",
+            "required": false,
+            "description": "The id of the area to filter for",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Get sample data for communityPost.created events",
+        "tags": [
+          "Subscriptions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CommunityPostCreatedPayload"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/webhooks/sample-data/community-post-moderated-events": {
+      "get": {
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "description": "If set 3 events for this user, with the optional area and forum filter, are returned",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "areaId",
+            "in": "query",
+            "required": false,
+            "description": "The id of the forum to filter for",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "forumId",
+            "in": "query",
+            "required": false,
+            "description": "The id of the area to filter for",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Get sample data for communityPost.moderated events",
+        "tags": [
+          "Subscriptions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CommunityPostModeratedPayload"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/webhooks/sample-data/community-post-commented-events": {
+      "get": {
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "description": "If set 3 events for this user, with the optional area and forum filter, are returned",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "postId",
+            "in": "query",
+            "required": false,
+            "description": "The id of the post to filter for",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Get sample data for communityPost.commented events",
+        "tags": [
+          "Subscriptions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CommunityPostCommentedPayload"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/webhooks/sample-data/group-user-access-changed-events": {
+      "get": {
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "query",
+            "required": false,
+            "description": "The id of the group to filter for",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "description": "If set 3 events for this user, with the optional area and forum filter, are returned",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Get sample data for group.userAccessChanged events",
+        "tags": [
+          "Subscriptions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GroupUserAccessChangedPayload"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/webhooks/sample-data/course-updated-events": {
+      "get": {
+        "parameters": [
+          {
+            "name": "courseInstanceId",
+            "in": "query",
+            "required": false,
+            "description": "The id of the course to filter for",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Get sample data for course.updated events",
+        "tags": [
+          "Subscriptions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CourseUpdatedPayload"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/webhooks/sample-data/course-member-added-events": {
+      "get": {
+        "parameters": [
+          {
+            "name": "courseInstanceId",
+            "in": "query",
+            "required": false,
+            "description": "The id of the course to filter for. If not provided, a course with at least one member will be searched for.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "summary": "Get sample data for course.memberAdded events",
+        "tags": [
+          "Subscriptions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CourseMemberAddedPayload"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-KEY"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "roleId": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string",
+            "description": "The language setting of the member in the plattform"
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastLogin": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "about": {
+            "type": "string",
+            "description": "Additional information about the member",
+            "nullable": true
+          },
+          "position": {
+            "type": "string",
+            "description": "Additional information about the member",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "description": "Additional information about the member",
+            "nullable": true
+          },
+          "accessFrom": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "accessTo": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedUserInfoAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "UserWithGroups": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/User"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "groups": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Group"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "UserWithBundleAccessInfo": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/User"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "accessInfo": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/BundleAccessInfo"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "UserWithCourseAccessInfo": {
+        "type": "object",
+        "required": [
+          "user",
+          "accessPaths"
+        ],
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "accessPaths": {
+            "type": "array",
+            "description": "The access paths of the user to the course. If bundleId and GroupId are set, the user got access through a group, which has a bundle, which has the course. If both are not set, the user has direct access",
+            "items": {
+              "type": "object",
+              "required": [
+                "courseInstanceId",
+                "userId"
+              ],
+              "properties": {
+                "courseInstanceId": {
+                  "type": "string",
+                  "description": "The course instance id of the course the user has access to"
+                },
+                "userId": {
+                  "type": "string",
+                  "description": "The id of the user"
+                },
+                "groupId": {
+                  "type": "string",
+                  "description": "The id of the group which enables the access to the course for this user."
+                },
+                "bundleId": {
+                  "type": "string",
+                  "description": "The id of the bundle which enables the access to the course for this user."
+                }
+              }
+            }
+          },
+          "progressInfo": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserCourseProgressInfo"
+              },
+              {
+                "description": "Only available if 'includeProgress' is set as query parameter"
+              }
+            ]
+          }
+        }
+      },
+      "Bundle": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "accessDurationDays": {
+            "type": "integer",
+            "nullable": true
+          }
+        }
+      },
+      "UserCourseProgressInfo": {
+        "type": "object",
+        "properties": {
+          "progressForCurrentMemberAccessibleContent": {
+            "type": "number",
+            "deprecated": true,
+            "description": "The progress of the member, only regarding the content that is visible to the member."
+          },
+          "progressShownToMember": {
+            "type": "number",
+            "description": "The progress as shown to the member. Content that is hidden or marked as 'coming soon' is not included in this progress. Float from 0 to 1."
+          },
+          "totalProgress": {
+            "type": "number",
+            "description": "The progress of the member regarding all content of the course. Float from 0 to x (can be larger than 1 if user has access to a module via content drip override which is normally not accessible)"
+          },
+          "lastVisit": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "totalLearningTimeFormatted": {
+            "type": "string",
+            "description": "formatted total learning time in hours and minutes"
+          },
+          "totalLearningTimeSeconds": {
+            "type": "number",
+            "description": "total learning time in seconds"
+          }
+        }
+      },
+      "UserCourseAccessInfo": {
+        "type": "object",
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "hasAccess": {
+            "type": "boolean"
+          }
+        }
+      },
+      "BundleWithAccessInfo": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Bundle"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "accessInfo": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/BundleAccessInfo"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "BundleAccessInfo": {
+        "type": "object",
+        "properties": {
+          "accessGivenAt": {
+            "type": "string",
+            "description": "The earliest time the user got access to the bundle. Computed from the user's groups and direct access. Can be manually overridden.",
+            "format": "date-time"
+          },
+          "accessUntil": {
+            "description": "The time the user's access to the bundle ends. Computed with the bundle access duration. Can be manually overridden. If null, the access does not end automatically.",
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "unlimitedAccess": {
+            "description": "If true, the user has unlimited access to the bundle",
+            "type": "boolean"
+          },
+          "locked": {
+            "description": "If true, the direct access was locked due to a failing payment from copecart. The user can still have access through groups",
+            "type": "boolean"
+          },
+          "pauses": {
+            "type": "array",
+            "description": "The pauses of the user's access to the bundle, each pause duration gets added to the access duration, if not unlimited",
+            "items": {
+              "type": "object",
+              "properties": {
+                "pausedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "pausedUntil": {
+                  "nullable": true,
+                  "description": "If null, the pause is set indefinitely until manually removed",
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "directAccess": {
+            "description": "If true, the user has direct access to the bundle. Otherwise, the user has access through one or more groups",
+            "type": "boolean"
+          },
+          "accessThroughGroups": {
+            "description": "The groups the user has access through",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Group"
+            }
+          }
+        }
+      },
+      "Course": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "sid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string",
+            "description": "The slug of the course, used for the URL"
+          },
+          "description": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "courseVersionId": {
+            "type": "string"
+          },
+          "permissionStrategy": {
+            "type": "string",
+            "deprecated": true,
+            "enum": [
+              "NONE",
+              "SIMPLE_PERMISSIONS"
+            ]
+          },
+          "className": {
+            "type": "string",
+            "deprecated": true
+          },
+          "lastPublishedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CourseInfoForUser": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The Id of the published course"
+          },
+          "sid": {
+            "type": "string",
+            "description": "The short id for small urls"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the course"
+          },
+          "summary": {
+            "type": "string",
+            "description": "The summary of the course"
+          }
+        },
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/UserCourseProgressInfo"
+          },
+          {
+            "$ref": "#/components/schemas/UserCourseAccessInfo"
+          }
+        ]
+      },
+      "Module": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "sid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "indented": {
+            "type": "boolean",
+            "description": "If true, the module is displayed indented in the course outline."
+          },
+          "sectionsDoneOneByOne": {
+            "type": "boolean",
+            "description": "[Only for learning modules] If true, the sections of the module have to be done one by one. If false, the sections can be done in any order."
+          },
+          "authors": {
+            "type": "array",
+            "nullable": false,
+            "description": "Only available on learning modules.",
+            "items": {
+              "type": "string",
+              "description": "The User IDs of the authors of the module"
+            }
+          },
+          "externalOrigin": {
+            "$ref": "#/components/schemas/ExternalOrigin"
+          },
+          "contentDrip": {
+            "$ref": "#/components/schemas/ContentDrip"
+          }
+        }
+      },
+      "Section": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sortIndex": {
+            "type": "number"
+          },
+          "lessonsDoneOneByOne": {
+            "type": "boolean"
+          },
+          "externalOrigin": {
+            "$ref": "#/components/schemas/ExternalOrigin"
+          }
+        }
+      },
+      "ExternalOrigin": {
+        "type": "object",
+        "nullable": true,
+        "required": [
+          "type",
+          "platform"
+        ],
+        "description": "Meta data if the entity was imported from an external platform",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          }
+        }
+      },
+      "ModuleAccessRequest": {
+        "type": "object",
+        "properties": {
+          "requestMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "classId": {
+            "type": "string",
+            "deprecated": true
+          },
+          "fromUser": {
+            "$ref": "#/components/schemas/UserOfEvent"
+          },
+          "module": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "course": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "APPROVED",
+              "REJECTED"
+            ]
+          }
+        }
+      },
+      "Submission": {
+        "type": "object",
+        "properties": {
+          "classId": {
+            "type": "string",
+            "description": "The course instance id",
+            "deprecated": true
+          },
+          "submissionId": {
+            "type": "string"
+          },
+          "fromUser": {
+            "$ref": "#/components/schemas/UserOfEvent"
+          },
+          "course": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "module": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "section": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "lesson": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "createdAt": {
+            "description": "The date when the submission was created",
+            "type": "string",
+            "format": "date-time"
+          },
+          "submission": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "submit_text_input",
+                  "submit_video_rehearsal",
+                  "submit_audio_response",
+                  "submit_file_upload"
+                ]
+              },
+              "taskName": {
+                "type": "string"
+              },
+              "studentComment": {
+                "description": "this field exists for all submission types except submit_text_input",
+                "type": "string"
+              },
+              "value": {
+                "description": "this field only exists for submit_text_input",
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "Lesson": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "sid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "deprecated": true,
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "draft": {
+            "description": "This flag indicates that the lesson is not available to members.",
+            "type": "boolean"
+          },
+          "visibility": {
+            "type": "string",
+            "description": "The visibility status of the lesson. Draft will hide the lesson from all members, Visible will show the lesson to all members with access, Coming Soon will show the lesson but it is locked.",
+            "enum": [
+              "VISIBLE",
+              "DRAFT",
+              "COMING_SOON"
+            ]
+          }
+        }
+      },
+      "Group": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "GroupWithUsers": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Group"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "users": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "Hub": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "sid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "internalNotes": {
+            "type": "string"
+          },
+          "icon": {
+            "nullable": true,
+            "type": "string"
+          },
+          "isTemplate": {
+            "type": "boolean"
+          },
+          "changesExist": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "documentId": {
+            "type": "string",
+            "description": "The collaborative document the hub is using."
+          },
+          "currentlyPublishedDocumentVersionId": {
+            "nullable": true,
+            "type": "string",
+            "description": "The document version that was last published from this hub."
+          },
+          "lastPublishedDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "sortValue": {
+            "type": "number"
+          },
+          "creationVariables": {
+            "type": "object",
+            "description": "The variables that were used to create the hub from a template",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Role": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "rights": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tenantId": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "SubscriptionType": {
+        "type": "string",
+        "description": "The type of event to subscribe to",
+        "enum": [
+          "feedback.created",
+          "accessRequest.created",
+          "submission.created",
+          "courseProgress.changed",
+          "lesson.completed",
+          "login.new",
+          "exam.completed",
+          "exam.graded",
+          "customPopup.interaction",
+          "communityPost.created",
+          "communityPost.moderated",
+          "group.userAccessChanged",
+          "communityPost.commented",
+          "course.updated",
+          "course.memberAdded"
+        ]
+      },
+      "UserOfEvent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastLogin": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "roleId": {
+            "type": "string"
+          }
+        }
+      },
+      "UserOfEventNullable": {
+        "nullable": true,
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/UserOfEvent"
+          }
+        ]
+      },
+      "Subscription": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "type": {
+            "$ref": "#/components/schemas/SubscriptionType"
+          },
+          "filter": {
+            "$ref": "#/components/schemas/SubscriptionFilter"
+          },
+          "url": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "tenantId": {
+            "type": "string"
+          }
+        }
+      },
+      "SubscriptionFilter": {
+        "type": "object",
+        "oneOf": [
+          {
+            "description": "feedback.created",
+            "properties": {
+              "courseInstanceId": {
+                "type": "string",
+                "description": "The id of the published course",
+                "required": false
+              }
+            },
+            "required": []
+          },
+          {
+            "description": "accessRequest.created",
+            "properties": {
+              "courseInstanceId": {
+                "type": "string",
+                "description": "The id of the published course",
+                "required": false
+              }
+            },
+            "required": []
+          },
+          {
+            "description": "courseProgress.changed",
+            "properties": {
+              "courseInstanceId": {
+                "type": "string",
+                "description": "The id of the published course",
+                "required": false
+              },
+              "above": {
+                "type": "integer",
+                "description": "The minimum progress the member must have to trigger the event. From 0 to 100 [%]",
+                "required": true
+              }
+            },
+            "required": []
+          },
+          {
+            "description": "submission.created",
+            "properties": {
+              "courseInstanceId": {
+                "type": "string",
+                "description": "The id of the published course",
+                "required": false
+              }
+            },
+            "required": []
+          },
+          {
+            "description": "login.new",
+            "properties": {
+              "loginType": {
+                "type": "string",
+                "description": "To subscribe to a specific login type",
+                "enum": [
+                  "email-password",
+                  "magic-link",
+                  "password-reset",
+                  "google",
+                  "impersonation",
+                  "impersonated-by-admin",
+                  "oidc",
+                  "refresh",
+                  "auto-login"
+                ],
+                "required": false
+              },
+              "userRoleId": {
+                "type": "string",
+                "description": "To subscribe to a specific user role",
+                "enum": [
+                  "owner",
+                  "admin",
+                  "course-admin",
+                  "trainer",
+                  "user-admin",
+                  "community-manager",
+                  "member"
+                ],
+                "required": false
+              }
+            },
+            "required": []
+          },
+          {
+            "description": "exam.completed",
+            "properties": {
+              "courseInstanceId": {
+                "type": "string",
+                "description": "The id of the published course",
+                "required": false
+              },
+              "examModuleId": {
+                "type": "string",
+                "description": "The id of the Exam Module",
+                "required": false
+              }
+            },
+            "required": []
+          },
+          {
+            "description": "exam.graded",
+            "properties": {
+              "courseInstanceId": {
+                "type": "string",
+                "description": "The id of the published course",
+                "required": false
+              },
+              "examModuleId": {
+                "type": "string",
+                "description": "The id of the Exam Module",
+                "required": false
+              }
+            },
+            "required": []
+          },
+          {
+            "description": "customPopup.interaction",
+            "properties": {
+              "customPopupId": {
+                "type": "string",
+                "description": "The id of the Custom Popup",
+                "required": false
+              },
+              "interactionType": {
+                "type": "string",
+                "description": "The type of interaction",
+                "enum": [
+                  "dismissed",
+                  "actioned"
+                ],
+                "required": false
+              }
+            },
+            "required": []
+          },
+          {
+            "description": "lesson.completed",
+            "properties": {
+              "courseInstanceId": {
+                "type": "string",
+                "description": "The id of the published course",
+                "required": false
+              },
+              "moduleId": {
+                "type": "string",
+                "description": "The id of the Learning Module",
+                "required": false
+              },
+              "lessonId": {
+                "type": "string",
+                "description": "The id of the Lesson",
+                "required": false
+              }
+            },
+            "required": []
+          },
+          {
+            "description": "communityPost.created",
+            "properties": {
+              "areaId": {
+                "type": "string",
+                "description": "The id of the area to filter for",
+                "required": false
+              },
+              "forumId": {
+                "type": "string",
+                "description": "The id of the forum to filter for",
+                "required": false
+              },
+              "published": {
+                "type": "boolean",
+                "description": "If true, only posts that are published are returned. If false, only posts that are not published are returned (e.g. posts in moderated forums which are not handled yet.). If not set, both published and unpublished posts are returned.",
+                "required": false
+              }
+            },
+            "required": []
+          },
+          {
+            "description": "communityPost.moderated",
+            "properties": {
+              "areaId": {
+                "type": "string",
+                "description": "The id of the area to filter for",
+                "required": false
+              },
+              "forumId": {
+                "type": "string",
+                "description": "The id of the forum to filter for",
+                "required": false
+              },
+              "approved": {
+                "type": "boolean",
+                "description": "If true, only posts that are approved are returned. If false, only posts that are rejected are returned. If not set, both approved and rejected posts are returned.",
+                "required": false
+              }
+            },
+            "required": []
+          },
+          {
+            "description": "communityPost.commented",
+            "properties": {
+              "areaId": {
+                "type": "string",
+                "description": "The id of the area to filter for",
+                "required": false
+              },
+              "forumId": {
+                "type": "string",
+                "description": "The id of the forum to filter for",
+                "required": false
+              },
+              "mentionedUserIds": {
+                "type": "array",
+                "description": "If set, only comments that tag at least one of the given team-member ids are returned. NOTE: only available for users with admin-zone access, not for members.",
+                "items": {
+                  "type": "string",
+                  "description": "The id of the mentioned user to filter for"
+                },
+                "required": false
+              }
+            },
+            "required": []
+          },
+          {
+            "description": "group.userAccessChanged",
+            "properties": {
+              "groupId": {
+                "type": "string",
+                "description": "The id of the group to filter for",
+                "required": false
+              },
+              "action": {
+                "type": "string",
+                "description": "The type of action to filter for: added or removed",
+                "required": false,
+                "enum": [
+                  "added",
+                  "removed"
+                ]
+              }
+            },
+            "required": []
+          },
+          {
+            "description": "course.updated",
+            "properties": {
+              "courseInstanceId": {
+                "type": "string",
+                "description": "The id of the course to filter for",
+                "required": false
+              }
+            },
+            "required": []
+          },
+          {
+            "description": "course.memberAdded",
+            "properties": {
+              "courseInstanceId": {
+                "type": "string",
+                "description": "The id of the course to filter for",
+                "required": false
+              }
+            },
+            "required": []
+          }
+        ],
+        "required": false
+      },
+      "SubscriptionPayload": {
+        "type": "object",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/FeedbackCreatedPayload"
+          },
+          {
+            "$ref": "#/components/schemas/AccessRequestCreatedPayload"
+          },
+          {
+            "$ref": "#/components/schemas/SubmissionCreatedPayload"
+          },
+          {
+            "$ref": "#/components/schemas/CourseProgressChangedPayload"
+          },
+          {
+            "$ref": "#/components/schemas/LessonCompletedPayload"
+          },
+          {
+            "$ref": "#/components/schemas/LoginNewPayload"
+          },
+          {
+            "$ref": "#/components/schemas/ExamCompletedPayload"
+          },
+          {
+            "$ref": "#/components/schemas/ExamGradedPayload"
+          },
+          {
+            "$ref": "#/components/schemas/CustomPopupInteractionPayload"
+          },
+          {
+            "$ref": "#/components/schemas/CommunityPostCreatedPayload"
+          },
+          {
+            "$ref": "#/components/schemas/CommunityPostModeratedPayload"
+          },
+          {
+            "$ref": "#/components/schemas/GroupUserAccessChangedPayload"
+          },
+          {
+            "$ref": "#/components/schemas/CourseUpdatedPayload"
+          }
+        ]
+      },
+      "FeedbackCreatedPayload": {
+        "description": "Type of feedback.created data",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "createdBy": {
+            "$ref": "#/components/schemas/UserOfEventNullable"
+          },
+          "text": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "number"
+          },
+          "stars": {
+            "type": "number"
+          },
+          "anonymous": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resolvedBy": {
+            "$ref": "#/components/schemas/UserOfEventNullable"
+          },
+          "resolvedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "The date the feedback was resolved. Null if the feedback was not resolved yet."
+          },
+          "respondedBy": {
+            "$ref": "#/components/schemas/UserOfEventNullable"
+          },
+          "respondedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "The date the feedback was responded. Null if the feedback was not responded yet."
+          },
+          "responseMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "updatedByMemberAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "The date the feedback was updated by the member. Null if the feedback was not updated yet."
+          },
+          "previousVersionHistory": {
+            "type": "array",
+            "description": "The previous version history of the feedback",
+            "nullable": true,
+            "items": {
+              "properties": {
+                "text": {
+                  "type": "string"
+                },
+                "rating": {
+                  "type": "number"
+                },
+                "anonymous": {
+                  "type": "boolean"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "responseMessage": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "respondedByUserId": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "classId": {
+            "type": "string",
+            "description": "The course instance id",
+            "deprecated": true
+          },
+          "course": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "module": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "lesson": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "page": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "AccessRequestCreatedPayload": {
+        "description": "Type of accessRequest.created data",
+        "properties": {
+          "requestMessage": {
+            "nullable": true,
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "classId": {
+            "type": "string",
+            "description": "The course instance id"
+          },
+          "fromUser": {
+            "$ref": "#/components/schemas/UserOfEvent"
+          },
+          "module": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "course": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "APPROVED",
+              "REJECTED"
+            ]
+          }
+        }
+      },
+      "SubmissionCreatedPayload": {
+        "$ref": "#/components/schemas/Submission"
+      },
+      "CourseProgressChangedPayload": {
+        "description": "Type of courseProgress.changed data",
+        "properties": {
+          "fromUser": {
+            "$ref": "#/components/schemas/UserOfEvent"
+          },
+          "classId": {
+            "type": "string",
+            "description": "The course instance id",
+            "deprecated": true
+          },
+          "currentProgress": {
+            "type": "number"
+          },
+          "course": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "LessonCompletedPayload": {
+        "description": "Type of lesson.completed data",
+        "properties": {
+          "classId": {
+            "type": "string",
+            "description": "The course instance id",
+            "deprecated": true
+          },
+          "fromUser": {
+            "$ref": "#/components/schemas/UserOfEvent"
+          },
+          "lesson": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "module": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "course": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "LoginNewPayload": {
+        "description": "Type of login.new data",
+        "properties": {
+          "fromUser": {
+            "$ref": "#/components/schemas/UserOfEvent"
+          },
+          "userAuthSessionId": {
+            "type": "string",
+            "description": "The id of the user auth session"
+          },
+          "event": {
+            "type": "object",
+            "description": "The event data",
+            "properties": {
+              "loginType": {
+                "type": "string",
+                "description": "The type of login",
+                "enum": [
+                  "email-password",
+                  "magic-link",
+                  "password-reset",
+                  "google",
+                  "impersonation",
+                  "impersonated-by-admin",
+                  "oidc",
+                  "refresh",
+                  "auto-login",
+                  "app-email-code"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "ExamCompletedPayload": {
+        "description": "Type of exam.completed data",
+        "properties": {
+          "fromUser": {
+            "$ref": "#/components/schemas/UserOfEvent"
+          },
+          "classId": {
+            "type": "string",
+            "description": "The course instance id",
+            "deprecated": true
+          },
+          "course": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "examModule": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "nullable": true
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "studentFeedback": {
+            "type": "string",
+            "nullable": true,
+            "description": "The feedback the student provided after completing the exam. This is optional and may not be present in all cases."
+          },
+          "examSessionId": {
+            "type": "string",
+            "description": "The unique identifier for the exam session. This is used to track the specific instance of the exam taken by the user."
+          }
+        }
+      },
+      "ExamGradedPayload": {
+        "description": "Type of exam.graded data",
+        "properties": {
+          "fromUser": {
+            "$ref": "#/components/schemas/UserOfEvent"
+          },
+          "gradedBy": {
+            "$ref": "#/components/schemas/UserOfEventNullable"
+          },
+          "classId": {
+            "type": "string",
+            "description": "The course instance id",
+            "deprecated": true
+          },
+          "course": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "examModule": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "nullable": true,
+                "description": "The id of the Exam Module. This may be null if the exam module is already deleted."
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "stats": {
+            "type": "object",
+            "properties": {
+              "passed": {
+                "type": "boolean",
+                "description": "If the exam was passed"
+              },
+              "gradeTitle": {
+                "type": "string",
+                "description": "The title of the grade"
+              },
+              "pointsAchieved": {
+                "type": "number",
+                "description": "The points achieved"
+              },
+              "pointsTotal": {
+                "type": "number",
+                "description": "The total points"
+              },
+              "percentage": {
+                "type": "number",
+                "description": "The percentage of the achieved points"
+              },
+              "comment": {
+                "type": "string",
+                "description": "The comment of the grader",
+                "nullable": true
+              },
+              "shouldRetry": {
+                "type": "boolean",
+                "description": "If the exam should be retried"
+              }
+            }
+          }
+        }
+      },
+      "CustomPopupInteractionPayload": {
+        "description": "Type of customPopup.interaction data",
+        "properties": {
+          "fromUser": {
+            "$ref": "#/components/schemas/UserOfEvent"
+          },
+          "interactionType": {
+            "type": "string",
+            "description": "The type of interaction",
+            "enum": [
+              "dismissed",
+              "actioned"
+            ]
+          },
+          "customPopup": {
+            "$ref": "#/components/schemas/CustomPopup"
+          }
+        }
+      },
+      "CommunityPostCreatedPayload": {
+        "description": "Type of communityPost.created data",
+        "properties": {
+          "area": {
+            "$ref": "#/components/schemas/CommunityArea"
+          },
+          "forum": {
+            "$ref": "#/components/schemas/CommunityForum"
+          },
+          "post": {
+            "$ref": "#/components/schemas/CommunityPost"
+          }
+        }
+      },
+      "CommunityPostModeratedPayload": {
+        "description": "Type of communityPost.moderated data",
+        "properties": {
+          "area": {
+            "$ref": "#/components/schemas/CommunityArea"
+          },
+          "forum": {
+            "$ref": "#/components/schemas/CommunityForum"
+          },
+          "post": {
+            "$ref": "#/components/schemas/CommunityPost"
+          },
+          "approved": {
+            "type": "boolean",
+            "description": "If true, the post was approved. If false, the post was rejected."
+          },
+          "rejectionReason": {
+            "type": "string",
+            "nullable": true,
+            "description": "The reason for the rejection. Only set if approved is false."
+          }
+        }
+      },
+      "CommunityPostCommentedPayload": {
+        "description": "Type of communityPost.commented data",
+        "properties": {
+          "area": {
+            "$ref": "#/components/schemas/CommunityArea"
+          },
+          "forum": {
+            "$ref": "#/components/schemas/CommunityForum"
+          },
+          "post": {
+            "$ref": "#/components/schemas/CommunityPost"
+          },
+          "comment": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The id of the comment. Can be used to comment an answer to the comment."
+              },
+              "author": {
+                "$ref": "#/components/schemas/UserOfEvent"
+              },
+              "answerToCommentId": {
+                "type": "string",
+                "nullable": true,
+                "description": "If set, this comment is an answer to another comment with the given id."
+              },
+              "publishedAt": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true,
+                "description": "The date the comment was published. Null if the comment is not published yet (e.g. in moderated forums)."
+              },
+              "mentionedUsers": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/UserOfEvent"
+                }
+              },
+              "bodyText": {
+                "type": "string",
+                "description": "The text of the comment."
+              }
+            }
+          }
+        }
+      },
+      "GroupUserAccessChangedPayload": {
+        "description": "Type of group.userAccessChanged data",
+        "properties": {
+          "group": {
+            "$ref": "#/components/schemas/Group"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserOfEvent"
+          },
+          "action": {
+            "type": "string",
+            "nullable": false,
+            "description": "The type of access change: added or removed",
+            "enum": [
+              "added",
+              "removed"
+            ]
+          }
+        }
+      },
+      "CourseUpdatedPayload": {
+        "description": "Type of course.updated data",
+        "properties": {
+          "publishingUser": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserOfEventNullable"
+              },
+              {
+                "description": "Can be null, if the publishing was done by an automated system process."
+              }
+            ]
+          },
+          "course": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "changelog": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ChangelogBaseElement"
+              },
+              {
+                "type": "object",
+                "description": "The course which was published.",
+                "properties": {
+                  "versionNumber": {
+                    "type": "integer",
+                    "description": "The course version number"
+                  },
+                  "versionName": {
+                    "type": "string",
+                    "description": "The name of this course version"
+                  },
+                  "versionNotes": {
+                    "type": "string",
+                    "description": "Optional notes on the course version"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "course"
+                    ]
+                  },
+                  "modules": {
+                    "type": "array",
+                    "nullable": false,
+                    "items": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/ChangelogBaseElement"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "learningModule",
+                                "mediaModule",
+                                "linkModule",
+                                "examModule"
+                              ]
+                            },
+                            "sections": {
+                              "type": "array",
+                              "items": {
+                                "allOf": [
+                                  {
+                                    "$ref": "#/components/schemas/ChangelogBaseElement"
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "enum": [
+                                          "section"
+                                        ]
+                                      },
+                                      "lessons": {
+                                        "type": "array",
+                                        "items": {
+                                          "allOf": [
+                                            {
+                                              "$ref": "#/components/schemas/ChangelogBaseElement"
+                                            },
+                                            {
+                                              "type": "object",
+                                              "properties": {
+                                                "type": {
+                                                  "type": "string",
+                                                  "enum": [
+                                                    "lesson"
+                                                  ]
+                                                },
+                                                "pages": {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "allOf": [
+                                                      {
+                                                        "$ref": "#/components/schemas/ChangelogBaseElement"
+                                                      },
+                                                      {
+                                                        "type": "object",
+                                                        "properties": {
+                                                          "type": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                              "page"
+                                                            ]
+                                                          }
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "CourseMemberAddedPayload": {
+        "description": "Type of course.memberAdded data",
+        "properties": {
+          "member": {
+            "$ref": "#/components/schemas/UserOfEvent"
+          },
+          "course": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "ChangelogBaseElement": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The ID of the element"
+          },
+          "name": {
+            "type": "string",
+            "description": "The current name of the element"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the element"
+          },
+          "changeCountIncludingDescendants": {
+            "type": "integer",
+            "description": "The number of changes in the entity itself and all its descendants."
+          },
+          "changes": {
+            "type": "array",
+            "description": "The list of changes made to the element",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "description": "The type of change made. Either 'created' or 'deleted' dont indicate if the entire element was created or deleted, but that this element was added or removed from the course structure visible to the member.",
+                  "enum": [
+                    "created",
+                    "deleted"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "description": "Change object with before and after values, indicating what was changed.",
+                  "properties": {
+                    "field": {
+                      "type": "string",
+                      "description": "The field name that was changed"
+                    },
+                    "before": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "array"
+                        },
+                        {
+                          "type": "object"
+                        }
+                      ],
+                      "description": "The value of the element before the change",
+                      "nullable": true
+                    },
+                    "after": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "array"
+                        },
+                        {
+                          "type": "object"
+                        }
+                      ],
+                      "description": "The value of the element after the change",
+                      "nullable": true
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "CustomPopup": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "sid": {
+            "type": "string",
+            "description": "The short id"
+          },
+          "internalName": {
+            "type": "string",
+            "description": "The internal name of the custom popup, shown in the admin panel."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ContentDrip": {
+        "type": "object",
+        "description": "Settings of how and when the content is shown to the user",
+        "properties": {
+          "contentDripType": {
+            "type": "string",
+            "description": "The type of content drip",
+            "enum": [
+              "PUBLISHED",
+              "COMING_SOON",
+              "HIDDEN",
+              "ON_DEMAND",
+              "AFTER_PREVIOUS",
+              "X_DAY_DELAY",
+              "CUSTOM",
+              "LOCKED",
+              "UPSELL_LINK"
+            ]
+          },
+          "contentDripValue": {
+            "oneOf": [
+              {
+                "title": "X_DAY_DELAY",
+                "type": "object",
+                "properties": {
+                  "dayDelay": {
+                    "type": "integer"
+                  },
+                  "visibility": {
+                    "type": "string",
+                    "enum": [
+                      "hidden",
+                      "locked"
+                    ]
+                  },
+                  "contentDripAfter": {
+                    "$ref": "#/components/schemas/ContentDrip"
+                  }
+                },
+                "description": "X_DAY_DELAY Value"
+              },
+              {
+                "title": "CUSTOM",
+                "type": "object",
+                "properties": {
+                  "constraints": {
+                    "type": "array",
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "value": "time"
+                            },
+                            "action": {
+                              "type": "string",
+                              "enum": [
+                                "FullAccess",
+                                "Hidden",
+                                "Locked",
+                                "ReadOnly"
+                              ]
+                            },
+                            "from": {
+                              "type": "date-time"
+                            },
+                            "to": {
+                              "type": "date-time"
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "value": "global"
+                            },
+                            "action": {
+                              "type": "string",
+                              "enum": [
+                                "FullAccess",
+                                "Hidden",
+                                "Locked",
+                                "ReadOnly"
+                              ]
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                "description": "Custom settings to change the content drip"
+              },
+              {
+                "title": "ON_DEMAND",
+                "type": "object",
+                "properties": {
+                  "visibility": {
+                    "type": "string",
+                    "value": "locked"
+                  },
+                  "reasonIsMandatory": {
+                    "type": "boolean",
+                    "description": "It is manditory for the member to state a reason"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                },
+                "description": "The member has to request access"
+              }
+            ]
+          }
+        }
+      },
+      "CommunityArea": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "sid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sortIndex": {
+            "type": "number"
+          }
+        }
+      },
+      "CommunityForum": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "sid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "areaId": {
+            "type": "string"
+          },
+          "moderated": {
+            "type": "boolean"
+          },
+          "sortIndex": {
+            "type": "number"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "announcements",
+              "discussions",
+              "feed"
+            ]
+          }
+        }
+      },
+      "CommunityPost": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "sid": {
+            "type": "string"
+          },
+          "forumId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "author": {
+            "$ref": "#/components/schemas/UserOfEvent"
+          },
+          "shadowBanned": {
+            "type": "boolean",
+            "description": "When a post has been reported as abuse by 3 or more users, this is true, then the post is hidden in the feed (except for the author), until an admin has handled the abuse reports."
+          },
+          "threadClosedData": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "reason": {
+                "type": "string",
+                "description": "The reason why the thread was closed"
+              },
+              "commentsDisabled": {
+                "type": "boolean",
+                "description": "If true, comments are disabled for this post after closing the thread"
+              }
+            }
+          },
+          "commentsDisabledAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "boostingId": {
+            "type": "string",
+            "nullable": true
+          },
+          "flaggedAsAbuseAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "latestVersionRejected": {
+            "type": "boolean"
+          },
+          "answerToPost": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CommunityPost"
+              }
+            ]
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "The date the post was published. Null if the post is not published yet."
+          },
+          "title": {
+            "type": "string",
+            "description": "The title of the post"
+          },
+          "bodyText": {
+            "type": "string",
+            "description": "The body of the post, converted to plain text"
+          }
+        }
+      },
+      "CommunityBadge": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "description": "A description of the badge",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sortIndex": {
+            "type": "number"
+          },
+          "color": {
+            "type": "string",
+            "description": "The color of the badge in hex format, e.g. #FF0000 for red"
+          },
+          "icon": {
+            "type": "string",
+            "description": "The icon of the badge",
+            "nullable": true
+          },
+          "link": {
+            "type": "string",
+            "description": "A link that is opened when the badge is clicked",
+            "nullable": true
+          },
+          "communityBadgeGroupId": {
+            "type": "string",
+            "description": "The id of the badge group this badge belongs to"
+          }
+        }
+      },
+      "CommunityPostComment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "author": {
+            "$ref": "#/components/schemas/UserOfEventNullable"
+          },
+          "shadowBanned": {
+            "type": "boolean",
+            "description": "When a comment has been reported as abuse by 3 or more users, this is true, then the comment is hidden in the feed (except for the author), until an admin has handled the abuse reports."
+          },
+          "flaggedAsAbuseAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "The date the post was published. Null if the post is not published yet."
+          },
+          "commentText": {
+            "type": "string",
+            "description": "The body of the post, converted to plain text"
+          },
+          "answerToCommentId": {
+            "type": "string",
+            "nullable": true,
+            "description": "The id of the comment this comment is an answer to. Null if this comment is not an answer."
+          }
+        }
+      },
+      "IsoDateTime": {
+        "type": "string",
+        "format": "date-time",
+        "example": "2023-10-05T14:48:00Z",
+        "pattern": "[YYYY-MM-DDTHH:MM:SSZ] | [YYYY-MM-DDTHH:MM:SS±HH:MM]",
+        "description": "Date and time in ISO 8601 format with optional time zone offset. The default is UTC time (e.g., 2023-10-05T14:48:00Z)"
+      }
+    }
+  }
+}
